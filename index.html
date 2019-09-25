@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-material-design@4.1.1/dist/css/bootstrap-material-design.min.css"
+        integrity="sha384-wXznGJNEXNG1NFsbm0ugrLFMQPWswR3lds2VeinahP8N0zJw9VWSopbjv2x7WCvX" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <title>Socket.io</title>
+    <style>
+        #formm{
+        width: 50%;
+    }
+    body{
+       background-color: #F6A7C1;
+    }
+    .card {
+      background-color: #fff;
+    }
+
+    #users {
+        background-color:#D3C0f9 ;
+        height: 100%;
+    }
+    h1{
+        text-align: center;
+        font-size: 40px;
+        color: #fff;
+    }
+    .footer {
+   position: fixed;
+   left: 0;
+   bottom: 0;
+   width: 100%;
+   height: 50px;
+   background-color: #D3C0f9 ;
+   color: black;
+   text-align: center;
+   padding: 20px;
+}
+    </style>
+</head>
+
+<body>
+    <br><br><br><br><h1>SOCKET.IO FORMULATION</h1></h1><br><br><br><br><br><br>
+    <center>
+        <div id="formm" class="ui form">
+            <div class="field">
+                <div id="error-container"></div>
+                <input id="name" type="text" name="name" value="" required placeholder="Enter your username!">
+                <br><br>
+                <button class="ui inverted blue button" type="button" name="button" onclick="setUsername()">
+                    Let me chat!
+                </button>
+
+            </div>
+        </div>
+    </center>
+    <div class="footer">
+            <p>© 2019 Socket.IO Formulation / All Rights Reserved / Privacy Policy Site Created by Jakeniel Erim.</p>
+          </div>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var listofusers = [];
+        var user = '';
+        var socket = io();
+        function setUsername() {
+            user = document.getElementById('name').value;
+            socket.emit('setUsername', document.getElementById('name').value);
+        };
+      
+        socket.on('userExists', function (data) {
+            document.getElementById('error-container').innerHTML = data;
+        });
+        socket.on('userSet', function (data) {
+            
+            document.body.innerHTML = '<div class="row">\
+    <div id = "first" class="col-md-4">\
+            <br> <br><br><br><div class="form createForm">\
+        <div id="users" class="card container">\
+                <h2 class="ui center aligned icon header">\
+            <i class="circular users icon"></i>\
+            Online Users\
+          </h2>\
+            <span id="activeusers" ></span>\
+            <br>\
+        </div>\
+      </div>\
+    </div>\
+    <div class="col-md-4">\
+        <br><br><br><br>\
+      <div class="form createForm">\
+            <div class="card container">\
+          <div class="ui fluid form">\
+        <div id = "message-container"></div><br><br><br><br>\
+        <form action="" onsubmit = "return sendMessage()">\
+         <input  id = "message" placeholder="Type your message here...">\
+         <center><br>\
+         </form>\
+        <button class="ui inverted blue button" type = "submit" name = "button" " >Send</button></center>\
+         </div><br></div></div><div class="col-md-4"></div></div>';
+         listofusers = [];
+            for (var i=0;i<data.length;++i) {
+                if (!listofusers.includes(data[i])) {
+                    if (data [i] != user) {
+                        listofusers.push(data[i]);
+                        $("#activeusers").append("<h3 class='u'>"+data[i]+"</h3>");
+                    }
+                }
+            }
+        });
+        function sendMessage(e) {
+            var msg = document.getElementById('message').value;
+            if (msg)
+             {
+                socket.emit('msg', { message: msg, user: user });
+                document.getElementById('message').value = "";
+            }
+            return false;
+
+        }
+
+
+        $(window).on('beforeunload', function(){
+            socket.emit('logout', user);
+        });
+
+        socket.on('logout', function(data) {
+            if (data != user) {
+                $('#message-container').append('<p><b>'+'🔴 <i>' + data+ ' left the group...</i></b></p>');
+            }
+        })
+
+
+        socket.on('newmsg', function (data) {
+            if (data.user == user) {
+                $('#message-container').append( '<p style="text-align:right" ><b>' +
+                    data.user + '</b> : ' + data.message + '</p>');
+            }else {
+               $('#message-container').append('<p><b>' +
+                    data.user + '</b> : ' + data.message + '</p>');
+            }
+        })
+    </script>
+</body>
+
+</html>
